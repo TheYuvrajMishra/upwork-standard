@@ -53,3 +53,17 @@ export async function POST(request: Request) {
     );
   }
 }
+
+export async function GET(){
+  try{
+    await dbConnect();
+    const user = await User.find();
+    return NextResponse.json({user}, {status: 200});
+  }
+  catch(error){
+    return NextResponse.json(
+      { success: false, message: 'Server error.' },
+      { status: 500 }
+    );
+  }
+}

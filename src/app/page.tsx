@@ -1,6 +1,6 @@
 // src/app/login/page.js (or wherever your login page is located)
 "use client";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function Home() {
@@ -8,7 +8,23 @@ export default function Home() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      router.push('/pages/dashboard');
+    } else {
+      setLoading(false);
+    }
+  }, [router]);
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>Loading...</p>
+      </div>
+    );
+  }
   const handleSubmit = async (e:any) => { // Removed 'any' type
     e.preventDefault();
     setError('');
@@ -27,6 +43,7 @@ export default function Home() {
       if (res.ok) {
         // Store the token and redirect
         localStorage.setItem('token', data.token);
+        localStorage.setItem('Role', data.role);
         router.push('/pages/dashboard'); // Adjusted path for App Router convention
       } else {
         setError(data.message || 'Something went wrong.');
