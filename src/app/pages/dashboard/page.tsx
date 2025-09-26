@@ -9,7 +9,7 @@ export default function Dashboard() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
-      router.push('/pages/login');
+      router.push('/');
     } else {
       setLoading(false);
     }
@@ -23,6 +23,7 @@ export default function Dashboard() {
   }
   const handleLogout=()=>{
     localStorage.removeItem('token');
+    router.push('/');
   }
   return (
     <div className="min-h-screen bg-gray-100 p-8">

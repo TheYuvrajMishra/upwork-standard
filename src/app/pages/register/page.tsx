@@ -27,7 +27,7 @@ export default function Register() {
 
       if (res.ok) {
         // Redirect to login page upon successful registration
-        router.push('/pages/login'); // Corrected path for App Router
+        router.push('/'); // Corrected path for App Router
       } else {
         setError(data.message || 'Something went wrong.');
       }
@@ -120,7 +120,7 @@ export default function Register() {
               Register
             </button>
           </div>
-          <span className='text-blue-500 cursor-pointer' onClick={()=>router.push("/pages/login")}>Already have an account?</span>
+          <span className='text-blue-500 cursor-pointer' onClick={()=>router.push("/")}>Already have an account?</span>
         </form>
       </div>
     </div>
