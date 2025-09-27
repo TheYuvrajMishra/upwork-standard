@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
 // Define a more complete interface for a Task to match your API data
-interface ITask {
+interface Task {
   _id: string;
   title: string;
   description: string;
@@ -29,7 +29,7 @@ const getInitials = (name: string = "") => {
 function Page() {
   const [addTask, setAddTask] = useState(false);
   const [staff, setStaff] = useState<any[]>([]);
-  const [tasks, setTasks] = useState<ITask[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -122,7 +122,7 @@ function Page() {
               </div>
             ) : (
               tasks.map((task) => (
-                <div key={task._id} className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-transform duration-200 cursor-pointer">
+                <div key={task._id} className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer">
                   <div className="flex justify-between items-start">
                     <h3 className="text-lg font-semibold text-gray-900">{task.title}</h3>
                     <div className="flex items-center gap-2">
