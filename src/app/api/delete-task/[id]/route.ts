@@ -1,13 +1,20 @@
+// src/app/api/delete-task/[id]/route.ts
+
 import Task from "@/app/models/Task";
 import dbConnect from "@/lib/dbConnect";
 import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+// The function signature is changed here
+export async function DELETE(
+  request: NextRequest,
+  context: { params: { id: string } }
+) {
   // 1. Connect to the database
   await dbConnect();
 
-  const { id } = params;
+  // Destructure id from the context object
+  const { id } = context.params;
 
   // 2. Validate the provided ID
   if (!mongoose.Types.ObjectId.isValid(id)) {

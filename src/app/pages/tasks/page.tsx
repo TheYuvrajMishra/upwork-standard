@@ -108,7 +108,7 @@ function Page() {
 
     fetchStaff();
     fetchTasks();
-  }, [router,fetchTasks]);
+  }, [router]);
 
   // Move fetchTasks to be accessible in the component scope
 
