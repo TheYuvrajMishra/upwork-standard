@@ -2,25 +2,36 @@
 // Import 'usePathname' to read the current URL
 import { usePathname, useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
-import { 
-  ClipboardCheck, 
-  CalendarDays, 
-  PenSquare, 
-  Users, 
-  Settings, 
+import {
+  ClipboardCheck,
+  CalendarDays,
+  PenSquare,
+  Users,
+  Settings,
   LogOut,
   LayoutGrid,
   Menu,
   X,
   ChevronRight,
-  Home
+  Home,
 } from "lucide-react";
-
+type NavLink = {
+  name: string;
+  path: string;
+};
 const navLinks = [
   { name: "Tasks", icon: <ClipboardCheck size={18} />, path: "/pages/tasks" },
-  { name: "Calendar", icon: <CalendarDays size={18} />, path: "/pages/calendar" },
+  {
+    name: "Calendar",
+    icon: <CalendarDays size={18} />,
+    path: "/pages/calendar",
+  },
   { name: "Notes", icon: <PenSquare size={18} />, path: "/pages/notes" },
-  { name: "Staff Reports", icon: <Users size={18} />, path: "/pages/staff-reports" },
+  {
+    name: "Staff Reports",
+    icon: <Users size={18} />,
+    path: "/pages/staff-reports",
+  },
   { name: "Settings", icon: <Settings size={18} />, path: "/pages/settings" },
 ];
 
@@ -29,7 +40,7 @@ function Navbar() {
   const [activeLink, setActiveLink] = useState("Tasks");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const router = useRouter();
-  
+
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
@@ -37,34 +48,46 @@ function Navbar() {
   }, []);
 
   // Close mobile menu when clicking outside
+  // ... inside your component
   useEffect(() => {
-    const handleClickOutside = (event:any) => {
-      if (isMobileMenuOpen && !event.target.closest('.mobile-menu-container')) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!isMobileMenuOpen) return; // Exit early if menu is already closed
+
+      const target = event.target;
+
+      // Type guard: Check if the target is an Element before using .closest()
+      if (
+        target instanceof Element &&
+        !target.closest(".mobile-menu-container")
+      ) {
         setIsMobileMenuOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isMobileMenuOpen]);
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isMobileMenuOpen, setIsMobileMenuOpen]);
 
   // Prevent body scroll when mobile menu is open
   useEffect(() => {
     if (isMobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     }
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     };
   }, [isMobileMenuOpen]);
-  
+
   // Get the current path from the URL
   const pathname = usePathname();
 
   // Update active link based on current path
   useEffect(() => {
-    const currentLink = navLinks.find(link => link.path === pathname);
+    const currentLink = navLinks.find((link) => link.path === pathname);
     if (currentLink) {
       setActiveLink(currentLink.name);
     }
@@ -84,28 +107,31 @@ function Navbar() {
     setIsMobileMenuOpen(false);
   };
 
-  const handleNavigation = (link:any) => {
-    setActiveLink(link.name);
-    router.push(link.path);
-    setIsMobileMenuOpen(false);
-  };
+  const handleNavigation = (link: NavLink) => { // <-- Use the NavLink type here
+  setActiveLink(link.name);
+  router.push(link.path);
+  setIsMobileMenuOpen(false);
+};
 
   // Generate breadcrumbs
   const getBreadcrumbs = () => {
-    const pathSegments = pathname.split('/').filter(segment => segment !== '');
-    const breadcrumbs = [{ name: 'Home', path: '/dashboard' }];
-    
-    let currentPath = '';
-    pathSegments.forEach((segment, index) => {
+    const pathSegments = pathname
+      .split("/")
+      .filter((segment) => segment !== "");
+    const breadcrumbs = [{ name: "Home", path: "/dashboard" }];
+
+    let currentPath = "";
+    pathSegments.forEach((segment) => {
       currentPath += `/${segment}`;
-      if (segment !== 'pages') {
-        const formattedName = segment.split('-').map(word => 
-          word.charAt(0).toUpperCase() + word.slice(1)
-        ).join(' ');
+      if (segment !== "pages") {
+        const formattedName = segment
+          .split("-")
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" ");
         breadcrumbs.push({ name: formattedName, path: currentPath });
       }
     });
-    
+
     return breadcrumbs;
   };
 
@@ -176,7 +202,7 @@ function Navbar() {
               ${isScrolled ? "py-2 text-sm" : "py-3 text-base"}`}
             >
               <LogOut size={18} />
-              <span className={`${isScrolled ? 'hidden xl:inline' : 'inline'}`}>
+              <span className={`${isScrolled ? "hidden xl:inline" : "inline"}`}>
                 Logout
               </span>
             </button>
@@ -210,10 +236,13 @@ function Navbar() {
                     <span
                       className={`${
                         index === breadcrumbs.length - 1
-                          ? 'text-blue-500 font-medium'
-                          : 'hover:text-gray-700 cursor-pointer'
+                          ? "text-blue-500 font-medium"
+                          : "hover:text-gray-700 cursor-pointer"
                       }`}
-                      onClick={() => index !== breadcrumbs.length - 1 && router.push(crumb.path)}
+                      onClick={() =>
+                        index !== breadcrumbs.length - 1 &&
+                        router.push(crumb.path)
+                      }
                     >
                       {crumb.name}
                     </span>
@@ -231,7 +260,7 @@ function Navbar() {
       {/* Mobile Slide-out Menu */}
       <div
         className={`mobile-menu-container fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white shadow-2xl z-60 transform transition-transform duration-300 ease-in-out lg:hidden ${
-          isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+          isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         <div className="flex flex-col h-full">
@@ -258,11 +287,17 @@ function Navbar() {
                   onClick={() => handleNavigation(link)}
                   className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl text-left transition-all duration-200 ${
                     activeLink === link.name
-                      ? 'bg-blue-50 text-blue-600 border-l-4 border-blue-400'
-                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                      ? "bg-blue-50 text-blue-600 border-l-4 border-blue-400"
+                      : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
                   }`}
                 >
-                  <div className={`${activeLink === link.name ? 'text-blue-500' : 'text-gray-500'}`}>
+                  <div
+                    className={`${
+                      activeLink === link.name
+                        ? "text-blue-500"
+                        : "text-gray-500"
+                    }`}
+                  >
                     {link.icon}
                   </div>
                   <span className="font-medium">{link.name}</span>
@@ -286,7 +321,7 @@ function Navbar() {
 
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden transition-opacity duration-300"
           onClick={() => setIsMobileMenuOpen(false)}
         />

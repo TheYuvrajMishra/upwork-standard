@@ -1,8 +1,8 @@
 import { NextResponse, NextRequest } from 'next/server';
+import mongoose from 'mongoose'; // <-- Required for the type guard
 import dbConnect from '@/lib/dbConnect';
 import Task from '@/app/models/Task';
 import User from '@/app/models/User';
-import mongoose from "mongoose";
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,6 +11,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { title, description, priority, assignedTo, status } = body;
 
+    // --- Input Validation ---
     if (!title || !description || !assignedTo) {
       return NextResponse.json(
         { success: false, message: 'Title, description, and assignedTo are required fields.' },
@@ -40,10 +41,11 @@ export async function POST(request: NextRequest) {
       { status: 201 } // 201 Created
     );
 
-  } catch (error: any) {
+  } catch (error: unknown) { // Use 'unknown' for type safety
     // Handle Mongoose validation errors specifically
-    if (error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map((err: any) => err.message);
+    if (error instanceof mongoose.Error.ValidationError) {
+      // The 'any' on 'err' is no longer needed due to type inference
+      const messages = Object.values(error.errors).map((err) => err.message);
       return NextResponse.json(
         { success: false, message: messages.join(', ') },
         { status: 400 } // Bad Request
@@ -58,4 +60,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

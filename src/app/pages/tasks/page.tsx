@@ -9,7 +9,6 @@ import {
   AlertCircle,
   User,
   X,
-  ChevronDown,
   Filter,
 } from "lucide-react";
 import TaskDetailsModal from "@/app/components/TasksModal";
@@ -36,11 +35,15 @@ const getInitials = (name: string = "") => {
     .join("")
     .toUpperCase();
 };
-
+interface StaffMember {
+  _id: string;
+  name: string;
+  email: string;
+}
 // Main page component
 function Page() {
   const [addTask, setAddTask] = useState(false);
-  const [staff, setStaff] = useState<any[]>([]);
+  const [staff, setStaff] = useState<StaffMember[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,9 +51,32 @@ function Page() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterPriority, setFilterPriority] = useState<string>("all");
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-
+  
   const router = useRouter();
-
+  
+  const fetchTasks = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/");
+      return;
+    }
+    try {
+      const res = await fetch("/api/task-list", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed to fetch tasks.");
+      const data = await res.json();
+      setTasks(data.data);
+    } catch (err: unknown) {
+      // Use a type guard to check if 'err' is an Error object
+      if (err instanceof Error) {
+        setError(err.message); // Safely access the message property
+      } else {
+        // Handle cases where the thrown value is not an Error object
+        setError("An unknown error occurred");
+      }
+    } 
+  };
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -67,8 +93,14 @@ function Page() {
         if (!res.ok) throw new Error("Failed to fetch staff data.");
         const data = await res.json();
         setStaff(data.users);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        // Use a type guard to check if 'err' is an Error object
+        if (err instanceof Error) {
+          setError(err.message); // Safely access the message property
+        } else {
+          // Handle cases where the thrown value is not an Error object
+          setError("An unknown error occurred");
+        }
       } finally {
         setLoading(false);
       }
@@ -76,32 +108,15 @@ function Page() {
 
     fetchStaff();
     fetchTasks();
-  }, [router]);
+  }, [router,fetchTasks]);
 
   // Move fetchTasks to be accessible in the component scope
-  const fetchTasks = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/");
-      return;
-    }
-    try {
-      const res = await fetch("/api/task-list", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("Failed to fetch tasks.");
-      const data = await res.json();
-      setTasks(data.data);
-    } catch (err: any) {
-      setError(err.message);
-    }
-  };
 
   const handleAddTask = () => setAddTask(true);
   const handleCloseModal = () => setAddTask(false);
 
   const statusColors: {
-    [key: string]: { bg: string; text: string; icon: any };
+    [key: string]: { bg: string; text: string; icon: React.ElementType };
   } = {
     "To Do": { bg: "bg-gray-100", text: "text-gray-700", icon: Clock },
     "In Progress": {
@@ -251,7 +266,9 @@ function Page() {
               </select>
             </div>
           </div>
-
+          {error && (
+            <p className="text-sm hidden text-center text-red-600">{error}</p>
+          )}
           {/* Main Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Tasks Section */}
@@ -493,9 +510,9 @@ function AddTask({ isOpen, onClose, staff, onTaskAdded }: AddTaskProps) {
 
   // Handle staff member selection/deselection
   const handleStaffToggle = (staffId: string) => {
-    setAssignedTo(prev => {
+    setAssignedTo((prev) => {
       if (prev.includes(staffId)) {
-        return prev.filter(id => id !== staffId);
+        return prev.filter((id) => id !== staffId);
       } else {
         return [...prev, staffId];
       }
@@ -504,7 +521,7 @@ function AddTask({ isOpen, onClose, staff, onTaskAdded }: AddTaskProps) {
 
   // Get staff member details by ID
   const getStaffById = (id: string) => {
-    return staff.find(member => member._id === id);
+    return staff.find((member) => member._id === id);
   };
 
   const handleSave = async () => {
@@ -545,10 +562,15 @@ function AddTask({ isOpen, onClose, staff, onTaskAdded }: AddTaskProps) {
       resetForm();
       onTaskAdded();
       onClose();
-    } catch (err: any) {
-      setError(err.message);
-      console.error("Failed to save task:", err);
-    } finally {
+    } catch (err: unknown) {
+      // Use a type guard to check if 'err' is an Error object
+      if (err instanceof Error) {
+        setError(err.message); // Safely access the message property
+      } else {
+        // Handle cases where the thrown value is not an Error object
+        setError("An unknown error occurred");
+      }
+    }  finally {
       setIsSaving(false);
     }
   };
@@ -640,7 +662,7 @@ function AddTask({ isOpen, onClose, staff, onTaskAdded }: AddTaskProps) {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Assign To * ({assignedTo.length} selected)
               </label>
-              
+
               {/* Selected staff display */}
               {assignedTo.length > 0 && (
                 <div className="mb-3 flex flex-wrap gap-2">
@@ -705,6 +727,7 @@ function AddTask({ isOpen, onClose, staff, onTaskAdded }: AddTaskProps) {
             >
               Cancel
             </button>
+
             <button
               onClick={handleSave}
               className="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors font-medium"

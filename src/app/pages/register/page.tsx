@@ -10,7 +10,7 @@ export default function Register() {
   const [error, setError] = useState('');
   const router = useRouter();
 
-  const handleSubmit = async (e:any) => { // Removed 'any' type
+  const handleSubmit = async (e:React.FormEvent<HTMLFormElement>) => { // Removed 'any' type
     e.preventDefault();
     setError('');
 
@@ -31,7 +31,7 @@ export default function Register() {
       } else {
         setError(data.message || 'Something went wrong.');
       }
-    } catch (error) {
+    } catch {
       setError('An unexpected error occurred.');
     }
   };

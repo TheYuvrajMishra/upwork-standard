@@ -1,4 +1,3 @@
-// lib/dbConnect.js
 import mongoose from 'mongoose';
 
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -9,18 +8,12 @@ if (!MONGODB_URI) {
   );
 }
 
-/**
- * Global is used here to maintain a cached connection across hot reloads
- * in development. This prevents connections from growing exponentially
- * during API Route usage.
- */
 type MongooseGlobal = {
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;
 };
 
 declare global {
-  // eslint-disable-next-line no-var
   var mongoose: MongooseGlobal | undefined;
 }
 
