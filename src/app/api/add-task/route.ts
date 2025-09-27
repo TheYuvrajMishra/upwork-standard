@@ -1,7 +1,8 @@
 import { NextResponse, NextRequest } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import Task from '@/app/models/Task';
-import User from '@/app/models/User'; // Assuming you have a User model to validate against
+import User from '@/app/models/User';
+import mongoose from "mongoose";
 
 export async function POST(request: NextRequest) {
   try {
@@ -57,3 +58,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+

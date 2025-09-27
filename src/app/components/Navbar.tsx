@@ -38,7 +38,7 @@ function Navbar() {
 
   // Close mobile menu when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event) => {
+    const handleClickOutside = (event:any) => {
       if (isMobileMenuOpen && !event.target.closest('.mobile-menu-container')) {
         setIsMobileMenuOpen(false);
       }
@@ -84,7 +84,7 @@ function Navbar() {
     setIsMobileMenuOpen(false);
   };
 
-  const handleNavigation = (link) => {
+  const handleNavigation = (link:any) => {
     setActiveLink(link.name);
     router.push(link.path);
     setIsMobileMenuOpen(false);
