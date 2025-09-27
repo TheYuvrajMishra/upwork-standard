@@ -351,10 +351,10 @@ function Page() {
 
             {/* Desktop Staff Panel */}
             <div className="hidden lg:block">
-              <div className="sticky top-32">
+              <div className="sticky top-20">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
                   <Users size={20} />
-                  Team Members
+                  Staff Members
                 </h2>
                 <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 max-h-[70vh] overflow-auto">
                   {staff.length === 0 ? (
@@ -400,7 +400,7 @@ function Page() {
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
               <Users size={18} />
-              Team Members
+              Staff Members
             </h2>
             <button
               onClick={() => setShowStaffPanel(false)}
