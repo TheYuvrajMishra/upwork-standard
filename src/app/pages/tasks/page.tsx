@@ -151,7 +151,7 @@ function Page() {
   const stats = getTaskStats();
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
+    <div className="min-h-screen font-sans">
       {/* Mobile Staff Panel Overlay */}
       {showStaffPanel && (
         <div
@@ -160,9 +160,9 @@ function Page() {
         />
       )}
 
-      <main className="pt-24 lg:pt-32 px-4 sm:px-6 lg:px-8 pb-8">
+      <main className="pt-0 lg:pt-0 px-4 sm:px-6 lg:px-8 pb-8">
         {/* Header Section */}
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-screen mx-auto">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div>
               <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900">
@@ -477,7 +477,7 @@ function AddTask({ isOpen, onClose, staff, onTaskAdded }: AddTaskProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState("Medium");
-  const [assignedTo, setAssignedTo] = useState("");
+  const [assignedTo, setAssignedTo] = useState<string[]>([]); // Changed to array
   const [status, setStatus] = useState("To Do");
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -486,9 +486,25 @@ function AddTask({ isOpen, onClose, staff, onTaskAdded }: AddTaskProps) {
     setTitle("");
     setDescription("");
     setPriority("Medium");
-    setAssignedTo("");
+    setAssignedTo([]); // Reset to empty array
     setStatus("To Do");
     setError(null);
+  };
+
+  // Handle staff member selection/deselection
+  const handleStaffToggle = (staffId: string) => {
+    setAssignedTo(prev => {
+      if (prev.includes(staffId)) {
+        return prev.filter(id => id !== staffId);
+      } else {
+        return [...prev, staffId];
+      }
+    });
+  };
+
+  // Get staff member details by ID
+  const getStaffById = (id: string) => {
+    return staff.find(member => member._id === id);
   };
 
   const handleSave = async () => {
@@ -496,8 +512,8 @@ function AddTask({ isOpen, onClose, staff, onTaskAdded }: AddTaskProps) {
       setError("Title is a required field.");
       return;
     }
-    if (!assignedTo) {
-      setError("Please assign the task to a staff member.");
+    if (assignedTo.length === 0) {
+      setError("Please assign the task to at least one staff member.");
       return;
     }
 
@@ -516,7 +532,7 @@ function AddTask({ isOpen, onClose, staff, onTaskAdded }: AddTaskProps) {
           title,
           description,
           priority,
-          assignedTo,
+          assignedTo, // This is now an array
           status,
         }),
       });
@@ -619,22 +635,59 @@ function AddTask({ isOpen, onClose, staff, onTaskAdded }: AddTaskProps) {
               </div>
             </div>
 
+            {/* Multi-select staff assignment */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Assign To *
+                Assign To * ({assignedTo.length} selected)
               </label>
-              <select
-                value={assignedTo}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                onChange={(e) => setAssignedTo(e.target.value)}
-              >
-                <option value="">Select a team member</option>
+              
+              {/* Selected staff display */}
+              {assignedTo.length > 0 && (
+                <div className="mb-3 flex flex-wrap gap-2">
+                  {assignedTo.map((staffId) => {
+                    const member = getStaffById(staffId);
+                    return member ? (
+                      <span
+                        key={staffId}
+                        className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                      >
+                        {member.name}
+                        <button
+                          onClick={() => handleStaffToggle(staffId)}
+                          className="ml-1 inline-flex items-center justify-center w-4 h-4 rounded-full hover:bg-blue-200"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ) : null;
+                  })}
+                </div>
+              )}
+
+              {/* Staff selection checkboxes */}
+              <div className="border border-gray-300 rounded-lg max-h-40 overflow-y-auto">
                 {staff.map((member) => (
-                  <option key={member._id} value={member._id}>
-                    {member.name} - {member.email}
-                  </option>
+                  <label
+                    key={member._id}
+                    className="flex items-center p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-200 last:border-b-0"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={assignedTo.includes(member._id)}
+                      onChange={() => handleStaffToggle(member._id)}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <div className="ml-3">
+                      <div className="text-sm font-medium text-gray-900">
+                        {member.name}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {member.email}
+                      </div>
+                    </div>
+                  </label>
                 ))}
-              </select>
+              </div>
             </div>
 
             {error && (
