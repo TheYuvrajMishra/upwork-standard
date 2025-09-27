@@ -13,7 +13,7 @@ export default function Home() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      router.push('/pages/dashboard');
+      router.push('/pages/tasks');
     } else {
       setLoading(false);
     }

@@ -70,7 +70,7 @@ function Navbar() {
             {/* LOGO / TITLE */}
             <div className="flex items-center gap-3">
               <LayoutGrid
-                className={`transition-all duration-500 ease-in-out text-blue-600 ${
+                className={`transition-all duration-500 ease-in-out text-blue-400 ${
                   isScrolled ? "h-8 w-8" : "h-12 w-12"
                 }`}
               />
@@ -91,11 +91,11 @@ function Navbar() {
                   onClick={() => {setActiveLink(link.name)
                     router.push(link.path)
                   }}
-                  className={`flex cursor-pointer items-center gap-2 px-3 rounded-full font-medium transition-all duration-300 transform
+                  className={`flex cursor-pointer items-center gap-2 px-3  font-medium transition-all duration-300 transform
                   ${isScrolled ? "py-2 text-sm" : "py-3 text-base"}
                   ${
                     activeLink === link.name
-                      ? "bg-blue-600 text-white shadow"
+                      ? "bg-blue-400 text-white shadow"
                       : "text-gray-500 bg-gray-100 hover:bg-gray-200 hover:text-gray-800"
                   }`}
                 >
@@ -109,7 +109,7 @@ function Navbar() {
           {/* RIGHT CONTENT (Logout Button) */}
           <button
             onClick={handleLogout}
-            className={`flex items-center gap-2 px-3 rounded-full cursor-pointer font-medium transition-all duration-300 transform text-gray-500 bg-gray-100 hover:bg-red-500 hover:text-white
+            className={`flex items-center gap-2 px-3  cursor-pointer font-medium transition-all duration-300 transform text-gray-500 bg-gray-100 hover:bg-red-500 hover:text-white
             ${isScrolled ? "py-2 text-sm" : "py-3 text-base"}`}
           >
             <LogOut size={18} />

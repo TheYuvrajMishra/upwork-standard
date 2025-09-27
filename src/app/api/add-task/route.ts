@@ -1,0 +1,59 @@
+import { NextResponse, NextRequest } from 'next/server';
+import dbConnect from '@/lib/dbConnect';
+import Task from '@/app/models/Task';
+import User from '@/app/models/User'; // Assuming you have a User model to validate against
+
+export async function POST(request: NextRequest) {
+  try {
+    await dbConnect();
+
+    const body = await request.json();
+    const { title, description, priority, assignedTo, status } = body;
+
+    if (!title || !description || !assignedTo) {
+      return NextResponse.json(
+        { success: false, message: 'Title, description, and assignedTo are required fields.' },
+        { status: 400 }
+      );
+    }
+
+    const userExists = await User.findById(assignedTo);
+    if (!userExists) {
+      return NextResponse.json(
+        { success: false, message: 'The user assigned to this task does not exist.' },
+        { status: 404 } // Not Found
+      );
+    }
+    
+    // --- Task Creation ---
+    const newTask = await Task.create({
+      title,
+      description,
+      priority,
+      assignedTo,
+      status,
+    });
+
+    return NextResponse.json(
+      { success: true, data: newTask },
+      { status: 201 } // 201 Created
+    );
+
+  } catch (error: any) {
+    // Handle Mongoose validation errors specifically
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map((err: any) => err.message);
+      return NextResponse.json(
+        { success: false, message: messages.join(', ') },
+        { status: 400 } // Bad Request
+      );
+    }
+
+    // Handle other potential errors
+    console.error('Error creating task:', error);
+    return NextResponse.json(
+      { success: false, message: 'An internal server error occurred.' },
+      { status: 500 }
+    );
+  }
+}
