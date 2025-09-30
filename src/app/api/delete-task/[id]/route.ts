@@ -7,14 +7,14 @@ import mongoose from "mongoose";
 
 // The function signature is changed here
 export async function DELETE(
-  context: { params: { id: string } },
-  NextRequest: NextRequest
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
   // 1. Connect to the database
   await dbConnect();
 
-  // Destructure id from the context object
-  const { id } = context.params;
+  // Await and destructure id from the context object
+  const { id } = await context.params;
 
   // 2. Validate the provided ID
   if (!mongoose.Types.ObjectId.isValid(id)) {

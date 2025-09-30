@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   Plus,
   Users,
@@ -54,7 +54,7 @@ function Page() {
   
   const router = useRouter();
   
-  const fetchTasks = async () => {
+  const fetchTasks = useCallback(async () => {
     const token = localStorage.getItem("token");
     if (!token) {
       router.push("/");
@@ -77,7 +77,7 @@ function Page() {
         setError("An unknown error occurred");
       }
     } 
-  };
+  }, [router]);
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -109,7 +109,7 @@ function Page() {
 
     fetchStaff();
     fetchTasks();
-  }, [router]);
+  }, [router, fetchTasks]);
 
   // Move fetchTasks to be accessible in the component scope
 

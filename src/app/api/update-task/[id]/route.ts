@@ -4,11 +4,11 @@ import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   // 1. Connect to the database
   await dbConnect();
 
-  const { id } = params;
+  const { id } = await params;
 
   // 2. Validate the provided ID
   if (!mongoose.Types.ObjectId.isValid(id)) {
