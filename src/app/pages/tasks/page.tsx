@@ -61,7 +61,8 @@ function Page() {
       return;
     }
     try {
-      const res = await fetch("/api/task-list", {
+      const res = await fetch("/api/add-task", {
+        method: "GET",
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Failed to fetch tasks.");

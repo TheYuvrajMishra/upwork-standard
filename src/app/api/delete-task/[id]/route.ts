@@ -2,13 +2,13 @@
 
 import Task from "@/app/models/Task";
 import dbConnect from "@/lib/dbConnect";
-import { NextRequest, NextResponse } from "next/server";
+import {NextResponse, NextRequest } from "next/server";
 import mongoose from "mongoose";
 
 // The function signature is changed here
 export async function DELETE(
-  request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: { id: string } },
+  NextRequest: NextRequest
 ) {
   // 1. Connect to the database
   await dbConnect();
