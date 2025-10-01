@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Calendar, dateFnsLocalizer, Views, View } from 'react-big-calendar';
+import { Calendar, dateFnsLocalizer, Views, View, EventProps } from 'react-big-calendar';
 // CORRECTED IMPORT: Use the modern 'dnd' addon path
 import withDragAndDrop, { withDragAndDropProps } from 'react-big-calendar/lib/addons/dragAndDrop';
 import { format } from 'date-fns/format';
@@ -17,11 +17,53 @@ import { CalendarEvent, EventFormData, EventColorMap, EventType } from '@/app/ty
 import EventModal from '@/app/components/EventsModal'; 
 // CORRECTED IMPORT: Toolbar is likely a default export
 import {CalendarToolbar} from '@/app/components/CalendarToolbar';
+import { ClockIcon } from '@heroicons/react/24/outline';
 
 const locales = { 'en-US': enUS };
 const localizer = dateFnsLocalizer({ format, parse, startOfWeek, getDay, locales });
-// Explicitly type DnDCalendar with CalendarEvent for correct prop types
+// FIXED: Explicitly type DnDCalendar with CalendarEvent for correct prop types
 const DnDCalendar = withDragAndDrop<CalendarEvent, object>(Calendar);
+
+// --- Custom Agenda Event Component (Table Format) ---
+const CustomAgendaEvent: React.FC<EventProps<CalendarEvent>> = ({ event }) => {
+  // A default color in case event.color is not provided
+  const eventColor = event.color || '#3174ad';
+
+  return (
+    <div className="relative flex w-full items-center rounded-lg bg-white p-4 pr-5 shadow-sm transition-shadow hover:shadow-md my-2">
+      {/* Color Bar */}
+      <div
+        className="absolute left-0 top-0 h-full w-1.5 rounded-l-lg"
+        style={{ backgroundColor: eventColor }}
+      ></div>
+
+      {/* Main Content Area */}
+      <div className="ml-4 flex flex-grow flex-col justify-center sm:flex-row sm:items-center sm:justify-between">
+        
+        {/* Event Title and Description */}
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-semibold text-gray-800">{event.title}</p>
+          {event.description && (
+            <p className="mt-1 truncate text-sm text-gray-500">{event.description}</p>
+          )}
+        </div>
+
+        {/* Time Information */}
+        <div className="mt-2 flex-shrink-0 sm:mt-0 sm:ml-6">
+          <div className="flex items-center justify-start gap-1.5 text-sm text-gray-600">
+            <ClockIcon className="h-4 w-4 text-gray-400" />
+            <span>
+              {event.allDay ? 'All Day' : `${format(event.start!, 'p')} - ${format(event.end!, 'p')}`}
+            </span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+};
+
+
 
 function CalendarPage() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -71,12 +113,14 @@ function CalendarPage() {
 
   // --- CRUD Handlers ---
   const handleSave = async (eventData: EventFormData) => {
+    console.log("DEBUG: Data received in handleSave from modal:", eventData);
     const eventToSave = {
       ...eventData,
       start: eventData.start.toISOString(),
       end: eventData.end.toISOString(),
     };
 
+    console.log("DEBUG: Sending this object to the API:", eventToSave);
     const promise = eventData._id
       ? axios.put(`/api/events/${eventData._id}`, eventToSave)
       : axios.post('/api/events', eventToSave);
@@ -125,40 +169,41 @@ function CalendarPage() {
   const handleSelectEvent = useCallback((event: CalendarEvent) => {
     setSelectedEvent({
       ...event,
-      title: typeof event.title === 'string' ? event.title : '', // Ensure title is a string
+      title: typeof event.title === 'string' ? event.title : '',
       start: new Date(event.start!),
       end: new Date(event.end!),
-      allDay: event.allDay ?? false, // Ensure allDay is always boolean
+      allDay: event.allDay ?? false,
     });
     setIsModalOpen(true);
   }, []);
 
   const onEventDrop: withDragAndDropProps<CalendarEvent>['onEventDrop'] = async ({ event, start, end }:any) => {
-    // The event here is now correctly typed as CalendarEvent
     const updatedEventData = { ...event, start, end };
     
     try {
-      // Only send necessary fields to the backend for an update
-      await axios.put(`/api/events/${event._id}`, { start, end });
-      // Update the local state correctly
+      // FIXED: Send the entire updated event object to persist all fields
+      await axios.put(`/api/events/${event._id}`, updatedEventData);
       setEvents((prev) => prev.map(e => (e._id === event._id ? updatedEventData : e)));
       toast.success(`Moved "${event.title}"`);
     } catch (error) {
       toast.error(`Failed to move "${event.title}"`);
-      // Revert local state on failure
-      setEvents(events);
+      // Revert local state on failure by re-fetching
+      fetchEvents(); 
       console.error(error);
     }
   };
 
   const onEventResize: withDragAndDropProps<CalendarEvent>['onEventResize'] = async ({ event, start, end }:any) => {
+    const resizedEventData = { ...event, start, end };
     try {
-      await axios.put(`/api/events/${event._id}`, { start, end });
-      setEvents((prev) => prev.map(e => (e._id === event._id ? { ...e, start, end } : e)));
+      // FIXED: Send the entire updated event object to persist all fields
+      await axios.put(`/api/events/${event._id}`, resizedEventData);
+      setEvents((prev) => prev.map(e => (e._id === event._id ? resizedEventData : e)));
       toast.success(`Resized "${event.title}"`);
     } catch (error) {
       toast.error(`Failed to resize "${event.title}"`);
-      setEvents(events);
+      // Revert local state on failure by re-fetching
+      fetchEvents();
       console.error(error);
     }
   };
@@ -170,9 +215,11 @@ function CalendarPage() {
 
   // --- UI and Styling ---
   const eventStyleGetter = (event: CalendarEvent) => {
+    // DEBUG: Log the event being styled to check its color property
+    console.log(`DEBUG: Styling event "${event.title}" with color: ${event.color}`);
     const style = {
         backgroundColor: event.color,
-        borderRadius: '5px',
+        borderRadius: '0px',
         opacity: 0.8,
         color: 'white',
         border: '0px',
@@ -196,7 +243,7 @@ function CalendarPage() {
                   checked={activeFilters.has(type as EventType)}
                   onChange={() => toggleFilter(type as EventType)}
                   className="h-4 w-4 rounded border-gray-300"
-                  style={{ accentColor: color as string }}
+                  style={{ accentColor: color }}
                 />
                 <label htmlFor={`filter-${type}`} className="ml-3 text-sm text-gray-700">{type}</label>
               </div>
@@ -224,10 +271,13 @@ function CalendarPage() {
                     date={date}
                     resizable
                     selectable
-                    style={{ height: '80vh' }}
+                    style={{ height: '100vh' }}
                     eventPropGetter={eventStyleGetter}
                     components={{
                         toolbar: CalendarToolbar,
+                        agenda: {
+                          event: CustomAgendaEvent,
+                        },
                     }}
                 />
             </div>
@@ -247,3 +297,4 @@ function CalendarPage() {
 }
 
 export default CalendarPage;
+
