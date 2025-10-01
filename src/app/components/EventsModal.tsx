@@ -32,10 +32,12 @@ const formatToDateTimeLocal = (date: Date): string => {
 
 export default function EventModal({ isOpen, onClose, onSave, onDelete, eventData, setEventData }: EventModalProps) {
   const [error, setError] = useState<string | null>(null);
+  const [customColor, setCustomColor] = useState<string>('');
 
   // Reset error when modal opens or data changes
   useEffect(() => {
     setError(null);
+    if (eventData?.color) setCustomColor(eventData.color);
   }, [isOpen, eventData]);
 
   if (!eventData) return null;
@@ -80,6 +82,29 @@ export default function EventModal({ isOpen, onClose, onSave, onDelete, eventDat
     }
   };
 
+  const handleDurationPreset = (minutes: number) => {
+    const newEnd = new Date(eventData.start.getTime() + minutes * 60 * 1000);
+    setEventData({ ...eventData, allDay: false, end: newEnd });
+  };
+
+  const handleCustomColorChange = (nextColor: string) => {
+    setCustomColor(nextColor);
+    setEventData({ ...eventData, color: nextColor });
+  };
+
+  const handleDuplicate = () => {
+    const offsetStart = new Date(eventData.start.getTime());
+    const offsetEnd = new Date(eventData.end.getTime());
+    setError(null);
+    onSave({
+      ...eventData,
+      _id: undefined,
+      title: `${eventData.title}`,
+      start: offsetStart,
+      end: offsetEnd,
+    });
+  };
+
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={onClose}>
@@ -106,15 +131,16 @@ export default function EventModal({ isOpen, onClose, onSave, onDelete, eventDat
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel as={motion.div} className="w-full max-w-lg transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+              <Dialog.Panel as={motion.div} className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                 <Dialog.Title as="h3" className="text-xl font-bold leading-6 text-gray-900 flex justify-between items-center">
                   {isNewEvent ? 'Add New Event' : 'Edit Event'}
                   <button onClick={onClose} className="p-1 rounded-full text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     <XMarkIcon className="h-6 w-6" />
                   </button>
                 </Dialog.Title>
-                
-                <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+
+                <form onSubmit={handleSubmit} className="mt-6 space-y-6">
+                  {/* Title */}
                   <div className="relative">
                     <PencilSquareIcon className="pointer-events-none absolute top-3 left-3 h-5 w-5 text-gray-400" />
                     <input
@@ -126,6 +152,7 @@ export default function EventModal({ isOpen, onClose, onSave, onDelete, eventDat
                     />
                   </div>
 
+                  {/* Description */}
                   <div>
                     <textarea
                       id="description" rows={3}
@@ -136,23 +163,55 @@ export default function EventModal({ isOpen, onClose, onSave, onDelete, eventDat
                     />
                   </div>
 
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 flex items-center gap-2"><TagIcon className="h-5 w-5 text-gray-500" /> Type</label>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {Object.entries(EventColorMap).map(([type, color]) => (
-                        <button
-                          key={type} type="button"
-                          onClick={() => handleTypeChange(type as EventType)}
-                          className={clsx(
-                            'px-3 py-1.5 text-xs cursor-pointer font-semibold rounded-full transition-all duration-200 text-white shadow-sm',
-                            'focus:outline-none focus:ring-2 focus:ring-offset-2',
-                            eventData.type === type ? 'ring-2 ring-offset-2' : 'hover:scale-105 opacity-50 hover:opacity-100'
-                          )}
-                          style={{ backgroundColor: color as string }}
-                        >
-                          {type}
-                        </button>
-                      ))}
+                  {/* Type & Color */}
+                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 flex items-center gap-2"><TagIcon className="h-5 w-5 text-gray-500" /> Type</label>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {Object.entries(EventColorMap).map(([type, color]) => (
+                          <button
+                            key={type} type="button"
+                            onClick={() => handleTypeChange(type as EventType)}
+                            className={clsx(
+                              'px-3 py-1.5 text-xs cursor-pointer font-semibold rounded-full transition-all duration-200 text-white shadow-sm',
+                              'focus:outline-none focus:ring-2 focus:ring-offset-2',
+                              eventData.type === type ? 'ring-2 ring-offset-2' : 'hover:scale-105 opacity-50 hover:opacity-100'
+                            )}
+                            style={{ backgroundColor: color as string }}
+                          >
+                            {type}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Custom color</label>
+                      <div className="mt-2 flex items-center gap-3">
+                        <input
+                          aria-label="Pick custom color"
+                          type="color"
+                          className="h-9 w-9 cursor-pointer rounded border border-gray-200"
+                          value={customColor}
+                          onChange={(e) => handleCustomColorChange(e.target.value)}
+                        />
+                        <input
+                          aria-label="Color hex"
+                          type="text"
+                          className="w-28 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                          value={customColor}
+                          onChange={(e) => {
+                            const value = e.target.value.trim();
+                            if (/^#([0-9a-fA-F]{3}){1,2}$/.test(value)) {
+                              handleCustomColorChange(value);
+                            } else {
+                              setCustomColor(value);
+                            }
+                          }}
+                          placeholder="#3174ad"
+                        />
+                      </div>
+                      <p className="mt-1 text-xs text-gray-500">Overrides the type color for this event.</p>
                     </div>
                   </div>
 
@@ -179,7 +238,8 @@ export default function EventModal({ isOpen, onClose, onSave, onDelete, eventDat
                       />
                     </Switch>
                   </Switch.Group>
-                  
+
+                  {/* Date & Time */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label htmlFor="start" className="text-sm font-medium text-gray-700 flex items-center gap-2"><CalendarDaysIcon className="h-5 w-5 text-gray-500" /> Start</label>
@@ -202,27 +262,45 @@ export default function EventModal({ isOpen, onClose, onSave, onDelete, eventDat
                       />
                     </div>
                   </div>
-                  
+
+                  {/* Quick durations */}
+                  {!eventData.allDay && (
+                    <div className="-mt-2 flex flex-wrap items-center gap-2">
+                      <span className="text-xs text-gray-500">Quick duration:</span>
+                      <button type="button" onClick={() => handleDurationPreset(30)} className="rounded-full border border-gray-200 px-3 py-1 text-xs text-gray-700 hover:bg-gray-50">30m</button>
+                      <button type="button" onClick={() => handleDurationPreset(60)} className="rounded-full border border-gray-200 px-3 py-1 text-xs text-gray-700 hover:bg-gray-50">1h</button>
+                      <button type="button" onClick={() => handleDurationPreset(120)} className="rounded-full border border-gray-200 px-3 py-1 text-xs text-gray-700 hover:bg-gray-50">2h</button>
+                    </div>
+                  )}
+
                   {error && <p className="text-sm text-red-600 text-center">{error}</p>}
 
                   <div className="pt-4 flex justify-between items-center">
-                    <div>
+                    <div className="flex items-center gap-3">
                       {!isNewEvent && (
-                        <button
-                          type="button" onClick={handleDelete}
-                          className="inline-flex items-center gap-2 justify-center rounded-md border border-transparent bg-red-100 px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 transition-colors"
-                        >
-                          <TrashIcon className="h-4 w-4" /> Delete
-                        </button>
+                        <>
+                          <button
+                            type="button" onClick={handleDuplicate}
+                            className="inline-flex items-center gap-2 justify-center rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 transition-colors"
+                          >
+                            Duplicate
+                          </button>
+                          <button
+                            type="button" onClick={handleDelete}
+                            className="inline-flex items-center gap-2 justify-center rounded-md border border-transparent bg-red-100 px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 transition-colors"
+                          >
+                            <TrashIcon className="h-4 w-4" /> Delete
+                          </button>
+                        </>
                       )}
                     </div>
                     <div className="flex gap-3">
-                       <button type="button" onClick={onClose} className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 transition-colors">
-                         Cancel
-                       </button>
-                       <button type="submit" className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 transition-colors">
-                         Save
-                       </button>
+                      <button type="button" onClick={onClose} className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 transition-colors">
+                        Cancel
+                      </button>
+                      <button type="submit" className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 transition-colors">
+                        Save
+                      </button>
                     </div>
                   </div>
                 </form>

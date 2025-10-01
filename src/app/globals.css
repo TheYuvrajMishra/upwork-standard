@@ -1,8 +1,10 @@
 @import "tailwindcss";
 @import 'react-big-calendar/lib/css/react-big-calendar.css';
+
 /* Add some custom styling for better UX */
 .rbc-event {
-  background-color: #3174ad !important;
+  /* Do NOT force a background-color here.
+     Let the calendar's eventPropGetter or custom components control colors. */
   border: none !important;
   border-radius: 4px !important;
   opacity: 0.85 !important;
@@ -11,6 +13,8 @@
 }
 
 .rbc-event.rbc-selected {
-  background-color: #215582 !important;
+  /* Preserve selection emphasis without overriding the event's color */
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.4) inset !important;
+  /* indigo-500 */
   opacity: 1 !important;
 }
