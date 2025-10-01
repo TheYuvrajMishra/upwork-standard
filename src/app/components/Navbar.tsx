@@ -1,7 +1,7 @@
 "use client";
 // Import 'usePathname' to read the current URL
 import { usePathname, useRouter } from "next/navigation";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect} from "react";
 import {
   ClipboardCheck,
   CalendarDays,
@@ -13,26 +13,25 @@ import {
   Menu,
   X,
   ChevronRight,
-  Home,
 } from "lucide-react";
 type NavLink = {
   name: string;
   path: string;
 };
 const navLinks = [
-  { name: "Tasks", icon: <ClipboardCheck size={18} />, path: "/pages/tasks" },
+  { name: "Tasks", icon: <ClipboardCheck size={18} />, path: "/pages/dashboard/tasks" },
   {
     name: "Calendar",
     icon: <CalendarDays size={18} />,
-    path: "/pages/calendar",
+    path: "/pages/dashboard/calendar",
   },
-  { name: "Notes", icon: <PenSquare size={18} />, path: "/pages/notes" },
+  { name: "Notes", icon: <PenSquare size={18} />, path: "/pages/dashboard/notes" },
   {
     name: "Staff Reports",
     icon: <Users size={18} />,
-    path: "/pages/staff-reports",
+    path: "/pages/dashboard/staff-reports",
   },
-  { name: "Settings", icon: <Settings size={18} />, path: "/pages/settings" },
+  { name: "Settings", icon: <Settings size={18} />, path: "/pages/dashboard/settings" },
 ];
 
 function Navbar() {
@@ -114,11 +113,12 @@ function Navbar() {
 };
 
   // Generate breadcrumbs
-  const getBreadcrumbs = () => {
+  const getBreadcrumbs = (): NavLink[] => {
     const pathSegments = pathname
       .split("/")
       .filter((segment) => segment !== "");
-    const breadcrumbs = [{ name: "Home", path: "/dashboard" }];
+    // const breadcrumbs = [{ name: "Home", path: "/pages/dashboard" }];
+    const breadcrumbs: NavLink[] = [];
 
     let currentPath = "";
     pathSegments.forEach((segment) => {
@@ -232,7 +232,6 @@ function Navbar() {
               <div className="flex items-center space-x-1 text-sm text-gray-500 overflow-x-auto whitespace-nowrap">
                 {breadcrumbs.map((crumb, index) => (
                   <div key={crumb.path} className="flex items-center">
-                    {index === 0 && <Home size={14} className="mr-1" />}
                     <span
                       className={`${
                         index === breadcrumbs.length - 1
