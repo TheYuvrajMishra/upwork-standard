@@ -13,7 +13,7 @@ export default function Home() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      router.push('/pages/tasks');
+      router.push('/pages/dashboard/tasks');
     } else {
       setLoading(false);
     }
@@ -44,7 +44,7 @@ export default function Home() {
         // Store the token and redirect
         localStorage.setItem('token', data.token);
         localStorage.setItem('Role', data.role);
-        router.push('/pages/tasks'); // Adjusted path for App Router convention
+        router.push('/pages/dashboard/tasks'); // Adjusted path for App Router convention
       } else {
         setError(data.message || 'Something went wrong.');
       }
