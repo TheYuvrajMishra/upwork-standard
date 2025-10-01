@@ -1,66 +1,87 @@
 import Link from 'next/link';
-import { Book, Calendar, ClipboardCheck, BarChart3 } from 'lucide-react'; // Using lucide-react for icons, a popular choice.
+import { Book, Calendar, ClipboardCheck, BarChart3 } from 'lucide-react';
 
-// Array to hold the navigation links for easy mapping
+/**
+ * An array of objects defining the navigation links for the dashboard.
+ * Each object contains the path, title, description, icon component,
+ * and specific styling classes for the icon's container and color.
+ * This approach makes the component modular and easy to update.
+ */
 const dashboardLinks = [
   {
-    href: '/dashboard/calendar',
-    title: 'Calendar',
-    description: 'View and manage your team and personal schedule.',
-    icon: <Calendar className="h-8 w-8 text-blue-500" />,
-  },
-  {
-    href: '/dashboard/notes',
-    title: 'Notes',
-    description: 'Create, edit, and organize your personal and shared notes.',
-    icon: <Book className="h-8 w-8 text-yellow-500" />,
-  },
-  {
-    href: '/dashboard/staff-reports',
-    title: 'Staff Reports',
-    description: 'Access analytics and performance reports for your staff.',
-    icon: <BarChart3 className="h-8 w-8 text-green-500" />,
-  },
-  {
-    href: '/dashboard/tasks',
+    href: '/pages/dashboard/tasks',
     title: 'Tasks',
-    description: 'Keep track of your to-do items and assigned tasks.',
-    icon: <ClipboardCheck className="h-8 w-8 text-red-500" />,
+    description: 'Keep track of your to-do items and projects.',
+    icon: <ClipboardCheck className="h-8 w-8 text-rose-600" />,
+    iconContainerClass: 'bg-rose-100',
+  },
+  {
+    href: '/pages/dashboard/calendar',
+    title: 'Calendar',
+    description: 'View your team and personal schedule.',
+    icon: <Calendar className="h-8 w-8 text-sky-600" />,
+    iconContainerClass: 'bg-sky-100',
+  },
+  {
+    href: '/pages/dashboard/notes',
+    title: 'Notes',
+    description: 'Create, edit, and organize your ideas.',
+    icon: <Book className="h-8 w-8 text-amber-600" />,
+    iconContainerClass: 'bg-amber-100',
+  },
+  {
+    href: '/pages/dashboard/staff-reports',
+    title: 'Staff Reports',
+    description: 'Access analytics and performance data.',
+    icon: <BarChart3 className="h-8 w-8 text-emerald-600" />,
+    iconContainerClass: 'bg-emerald-100',
   },
 ];
 
 export default function DashboardHomePage() {
   return (
-    <main className="p-8 bg-gray-50 min-h-screen dark:bg-gray-900">
-      <div className="max-w-4xl mx-auto">
-        {/* Page Header */}
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold text-gray-800 dark:text-white">
-            Dashboard Home
+    // Main container with a soft, light background for an airy feel
+    <main className="min-h-screen p-4 sm:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Page Header with centered text for a more formal and welcoming presentation */}
+        <div className="mb-12 text-center">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900">
+            Welcome to Your Dashboard
           </h1>
-          <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">
-            Welcome back! Select a section below to get started.
+          <p className="mt-3 text-lg text-slate-600 max-w-2xl mx-auto">
+            Everything you need, right at your fingertips. Select a module below to get started.
           </p>
         </div>
 
-        {/* Links Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Responsive grid for the navigation cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {dashboardLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="group block p-6 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg hover:border-blue-500 transition-all duration-300 dark:bg-gray-800 dark:border-gray-700 dark:hover:border-blue-500"
+              className="group flex flex-col justify-between p-6 bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 ease-in-out hover:-translate-y-1 border border-gray-200 hover:border-blue-500"
             >
-              <div className="flex items-center gap-4">
-                {link.icon}
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                    {link.title}
-                  </h2>
-                  <p className="mt-1 text-gray-500 dark:text-gray-400">
-                    {link.description}
-                  </p>
+              {/* Top section of the card */}
+              <div>
+                {/* Icon with a colored background for better visual hierarchy */}
+                <div
+                  className={`w-16 h-16 flex items-center justify-center rounded-2xl mb-5 ${link.iconContainerClass}`}
+                >
+                  {link.icon}
                 </div>
+                <h2 className="text-xl font-bold text-slate-800">
+                  {link.title}
+                </h2>
+                <p className="mt-2 text-slate-500 text-base">
+                  {link.description}
+                </p>
+              </div>
+              
+              {/* Bottom section of the card with a call-to-action that appears on hover */}
+              <div className="mt-6">
+                <span className="font-semibold text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  Go to {link.title} &rarr;
+                </span>
               </div>
             </Link>
           ))}

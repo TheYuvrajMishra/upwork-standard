@@ -14,6 +14,7 @@ import {
   X,
   ChevronRight,
 } from "lucide-react";
+import Link from "next/link";
 type NavLink = {
   name: string;
   path: string;
@@ -159,6 +160,7 @@ function Navbar() {
               }`}
             >
               {/* LOGO / TITLE */}
+              <Link href="/pages/dashboard">
               <div className="flex items-center gap-3">
                 <LayoutGrid
                   className={`transition-all duration-500 ease-in-out text-blue-400 ${
@@ -173,7 +175,7 @@ function Navbar() {
                   Company Dashboard
                 </h1>
               </div>
-
+              </Link>
               {/* NAVIGATION BUTTONS */}
               <div className="flex items-center flex-wrap gap-2">
                 {navLinks.map((link) => (

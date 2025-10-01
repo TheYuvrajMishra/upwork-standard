@@ -1,1 +1,16 @@
 @import "tailwindcss";
+@import 'react-big-calendar/lib/css/react-big-calendar.css';
+/* Add some custom styling for better UX */
+.rbc-event {
+  background-color: #3174ad !important;
+  border: none !important;
+  border-radius: 4px !important;
+  opacity: 0.85 !important;
+  font-size: 0.8rem !important;
+  padding: 2px 5px !important;
+}
+
+.rbc-event.rbc-selected {
+  background-color: #215582 !important;
+  opacity: 1 !important;
+}
