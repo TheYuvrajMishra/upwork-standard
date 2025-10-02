@@ -14,7 +14,7 @@ const isValidObjectId = (id: string) => mongoose.Types.ObjectId.isValid(id);
 
 // PUT (Update) a specific event
 export async function PUT(request: NextRequest, { params }: { params: Params }) {
-  const { id } = params;
+  const { id } = await params;
 
   if (!isValidObjectId(id)) {
     return NextResponse.json({ success: false, error: 'Invalid event ID' }, { status: 400 });
@@ -39,8 +39,11 @@ export async function PUT(request: NextRequest, { params }: { params: Params }) 
 }
 
 // DELETE a specific event
-export async function DELETE(request: NextRequest, { params }: { params: Params }) {
-  const { id } = params;
+export async function DELETE(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  const { id } = await context.params;
 
   if (!isValidObjectId(id)) {
     return NextResponse.json({ success: false, error: 'Invalid event ID' }, { status: 400 });

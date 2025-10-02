@@ -253,7 +253,7 @@ function CalendarPage() {
   return (
     <>
       <Toaster position="top-right" />
-      <div className="min-h-screen font-sans bg-gray-50 flex">
+      <div className="min-h-screen font-sans  flex">
         {/* Sidebar (md+) */}
         <aside className="hidden md:block w-52 shrink-0 border-r border-gray-200 bg-white">
           <div className="sticky top-0 p-4">

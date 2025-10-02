@@ -46,7 +46,7 @@ const CalendarToolbar = (toolbar: ToolbarProps<CalendarEvent, object>) => {
                     </button>
                 </div>
             </div>
-            <div className="flex items-center bg-gray-200 p-1 rounded-lg">
+            <div className="flex items-center bg-gray-200 p-1 rounded-lg gap-1">
                 {viewOptions.map(({ view, label }) => (
                     <button
                         key={view}
