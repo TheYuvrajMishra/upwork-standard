@@ -5,16 +5,13 @@ import dbConnect from '@/lib/dbConnect';
 import Event from '@/app/models/Events';
 import mongoose from 'mongoose';
 
-interface Params {
-  id: string;
-}
 
 // Helper to validate ObjectId
 const isValidObjectId = (id: string) => mongoose.Types.ObjectId.isValid(id);
 
 // PUT (Update) a specific event
-export async function PUT(request: NextRequest, { params }: { params: Params }) {
-  const { id } = await params;
+export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params;
 
   if (!isValidObjectId(id)) {
     return NextResponse.json({ success: false, error: 'Invalid event ID' }, { status: 400 });
