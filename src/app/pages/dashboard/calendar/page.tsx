@@ -17,7 +17,7 @@ import { CalendarEvent, EventFormData, EventColorMap, EventType } from '@/app/ty
 import EventModal from '@/app/components/EventsModal';
 // CORRECTED IMPORT: Toolbar is likely a default export
 import { CalendarToolbar } from '@/app/components/CalendarToolbar';
-import { ClockIcon, PlusIcon, AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline';
+import { ClockIcon, PlusIcon, AdjustmentsHorizontalIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 
 const locales = { 'en-US': enUS };
 const localizer = dateFnsLocalizer({ format, parse, startOfWeek, getDay, locales });
@@ -131,6 +131,107 @@ function CalendarPage() {
       color: EventColorMap['Meeting'],
     });
     setIsModalOpen(true);
+  };
+
+  const handleExportToExcel = async () => {
+    try {
+      // Dynamic import to avoid SSR issues
+      const XLSX = await import('xlsx');
+
+      // Prepare data for Excel export
+      const excelData = events.map((event, index) => ({
+        'S.No': index + 1,
+        'Event Title': event.title,
+        'Description': event.description || '',
+        'Type': event.type,
+        'Start Date': format(event.start!, 'yyyy-MM-dd'),
+        'Start Time': event.allDay ? 'All Day' : format(event.start!, 'HH:mm'),
+        'End Date': format(event.end!, 'yyyy-MM-dd'),
+        'End Time': event.allDay ? 'All Day' : format(event.end!, 'HH:mm'),
+        'Duration': event.allDay ? 'All Day' : `${Math.round((event.end!.getTime() - event.start!.getTime()) / (1000 * 60 * 60) * 10) / 10}h`,
+        'All Day': event.allDay ? 'Yes' : 'No',
+        'Color': event.color,
+        'Created': event.createdAt ? format(new Date(event.createdAt), 'yyyy-MM-dd HH:mm') : '',
+        'Updated': event.updatedAt ? format(new Date(event.updatedAt), 'yyyy-MM-dd HH:mm') : ''
+      }));
+
+      // Create workbook and worksheet
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(excelData);
+
+      // Set column widths for better readability
+      const colWidths = [
+        { wch: 6 },   // S.No
+        { wch: 25 },  // Event Title
+        { wch: 40 },  // Description
+        { wch: 15 },  // Type
+        { wch: 12 },  // Start Date
+        { wch: 10 },  // Start Time
+        { wch: 12 },  // End Date
+        { wch: 10 },  // End Time
+        { wch: 10 },  // Duration
+        { wch: 8 },   // All Day
+        { wch: 8 },   // Color
+        { wch: 16 },  // Created
+        { wch: 16 }   // Updated
+      ];
+      ws['!cols'] = colWidths;
+
+      // Add header styling
+      const headerStyle = {
+        font: { bold: true, color: { rgb: "FFFFFF" } },
+        fill: { fgColor: { rgb: "4F46E5" } }, // Indigo background
+        alignment: { horizontal: "center", vertical: "center" }
+      };
+
+      // Apply header styling to first row
+      const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+      for (let col = range.s.c; col <= range.e.c; col++) {
+        const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
+        if (!ws[cellAddress]) ws[cellAddress] = { v: '' };
+        ws[cellAddress].s = headerStyle;
+      }
+
+      // Add conditional formatting for event types
+      const typeColors: Record<string, string> = {
+        'Meeting': 'E3F2FD',      // Light blue
+        'Deadline': 'FFEBEE',     // Light red
+        'Team Building': 'E8F5E8', // Light green
+        'Project Timeline': 'FFF3E0', // Light orange
+        'Personal': 'E0F2F1'      // Light cyan
+      };
+
+      // Apply type-based row coloring
+      for (let row = 1; row <= excelData.length; row++) {
+        const typeCell = XLSX.utils.encode_cell({ r: row, c: 3 }); // Type column
+        const typeValue = ws[typeCell]?.v;
+        if (typeValue && typeColors[typeValue]) {
+          const rowRange = XLSX.utils.decode_range(`A${row + 1}:M${row + 1}`);
+          for (let col = rowRange.s.c; col <= rowRange.e.c; col++) {
+            const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+            if (!ws[cellAddress]) ws[cellAddress] = { v: '' };
+            ws[cellAddress].s = {
+              fill: { fgColor: { rgb: typeColors[typeValue] } }
+            };
+          }
+        }
+      }
+
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(wb, ws, 'Calendar Events');
+
+      // Generate filename with current date
+      const currentDate = format(new Date(), 'yyyy-MM-dd');
+      const filename = `Calendar_Events_${currentDate}.xlsx`;
+
+      // Write and download file
+      XLSX.writeFile(wb, filename);
+
+      toast.success('Calendar data exported successfully!');
+    } catch (error) {
+      console.error('Export failed:', error);
+      toast.error('Failed to export calendar data. Please try again.');
+    }
   };
 
   // --- CRUD Handlers ---
@@ -253,7 +354,7 @@ function CalendarPage() {
   return (
     <>
       <Toaster position="top-right" />
-      <div className="min-h-screen font-sans  flex">
+      <div className="min-h-screen font-sans flex">
         {/* Sidebar (md+) */}
         <aside className="hidden md:block w-52 shrink-0 border-r border-gray-200 bg-white">
           <div className="sticky top-0 p-4">
@@ -282,7 +383,7 @@ function CalendarPage() {
         </aside>
 
         {/* Main */}
-        <main className="flex-1 bg-gray-50">
+        <main className="flex-1 ">
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between pt-4 sm:pt-6">
               <div>
@@ -299,6 +400,15 @@ function CalendarPage() {
                 >
                   <AdjustmentsHorizontalIcon className="h-5 w-5 text-gray-500" />
                   Filters
+                </button>
+                <button
+                  type="button"
+                  onClick={handleExportToExcel}
+                  className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  aria-label="Export calendar to Excel"
+                >
+                  <ArrowDownTrayIcon className="h-5 w-5 text-gray-500" />
+                  Export Excel
                 </button>
               </div>
             </div>

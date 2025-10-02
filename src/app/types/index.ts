@@ -16,6 +16,8 @@ export interface CalendarEvent extends BigCalendarEvent {
   description?: string;
   type: EventType;
   color: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface EventFormData {
