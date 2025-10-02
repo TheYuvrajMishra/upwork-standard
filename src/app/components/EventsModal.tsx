@@ -131,7 +131,7 @@ export default function EventModal({ isOpen, onClose, onSave, onDelete, eventDat
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel as={motion.div} className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+              <Dialog.Panel as={motion.div} className="w-full max-w-2xl mx-4 transform overflow-hidden rounded-2xl bg-white p-4 sm:p-6 text-left align-middle shadow-xl transition-all">
                 <Dialog.Title as="h3" className="text-xl font-bold leading-6 text-gray-900 flex justify-between items-center">
                   {isNewEvent ? 'Add New Event' : 'Edit Event'}
                   <button onClick={onClose} className="p-1 rounded-full text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500">
@@ -139,7 +139,7 @@ export default function EventModal({ isOpen, onClose, onSave, onDelete, eventDat
                   </button>
                 </Dialog.Title>
 
-                <form onSubmit={handleSubmit} className="mt-6 space-y-6">
+                <form onSubmit={handleSubmit} className="mt-4 sm:mt-6 space-y-4 sm:space-y-6">
                   {/* Title */}
                   <div className="relative">
                     <PencilSquareIcon className="pointer-events-none absolute top-3 left-3 h-5 w-5 text-gray-400" />
@@ -164,7 +164,7 @@ export default function EventModal({ isOpen, onClose, onSave, onDelete, eventDat
                   </div>
 
                   {/* Type & Color */}
-                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2">
                     <div>
                       <label className="text-sm font-medium text-gray-700 flex items-center gap-2"><TagIcon className="h-5 w-5 text-gray-500" /> Type</label>
                       <div className="mt-2 flex flex-wrap gap-2">
@@ -240,7 +240,7 @@ export default function EventModal({ isOpen, onClose, onSave, onDelete, eventDat
                   </Switch.Group>
 
                   {/* Date & Time */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
                       <label htmlFor="start" className="text-sm font-medium text-gray-700 flex items-center gap-2"><CalendarDaysIcon className="h-5 w-5 text-gray-500" /> Start</label>
                       <input
@@ -275,32 +275,63 @@ export default function EventModal({ isOpen, onClose, onSave, onDelete, eventDat
 
                   {error && <p className="text-sm text-red-600 text-center">{error}</p>}
 
-                  <div className="pt-4 flex justify-between items-center">
-                    <div className="flex items-center gap-3">
+                  <div className="pt-3 sm:pt-4">
+                    {/* Mobile: Stack buttons vertically */}
+                    <div className="flex flex-col gap-3 sm:hidden">
                       {!isNewEvent && (
-                        <>
+                        <div className="flex gap-2">
                           <button
                             type="button" onClick={handleDuplicate}
-                            className="inline-flex items-center gap-2 justify-center rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 transition-colors"
+                            className="flex-1 inline-flex items-center justify-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
                           >
                             Duplicate
                           </button>
                           <button
                             type="button" onClick={handleDelete}
-                            className="inline-flex items-center gap-2 justify-center rounded-md border border-transparent bg-red-100 px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 transition-colors"
+                            className="flex-1 inline-flex items-center justify-center gap-2 rounded-md border border-transparent bg-red-100 px-3 py-2.5 text-sm font-medium text-red-900 hover:bg-red-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 transition-colors"
                           >
                             <TrashIcon className="h-4 w-4" /> Delete
                           </button>
-                        </>
+                        </div>
                       )}
+                      <div className="flex gap-2">
+                        <button type="button" onClick={onClose} className="flex-1 inline-flex justify-center rounded-md border border-gray-300 bg-white px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 transition-colors">
+                          Cancel
+                        </button>
+                        <button type="submit" className="flex-1 inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-3 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors">
+                          Save
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex gap-3">
-                      <button type="button" onClick={onClose} className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 transition-colors">
-                        Cancel
-                      </button>
-                      <button type="submit" className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 transition-colors">
-                        Save
-                      </button>
+
+                    {/* Desktop: Horizontal layout */}
+                    <div className="hidden sm:flex justify-between items-center">
+                      <div className="flex items-center gap-3">
+                        {!isNewEvent && (
+                          <>
+                            <button
+                              type="button" onClick={handleDuplicate}
+                              className="inline-flex items-center gap-2 justify-center rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 transition-colors"
+                            >
+                              Duplicate
+                            </button>
+                            <button
+                              type="button" onClick={handleDelete}
+                              className="inline-flex items-center gap-2 justify-center rounded-md border border-transparent bg-red-100 px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 transition-colors"
+                            >
+                              <TrashIcon className="h-4 w-4" /> Delete
+                            </button>
+                          </>
+                        )}
+                      </div>
+                      <div className="flex gap-3">
+                        <button type="button" onClick={onClose} className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 transition-colors">
+                          Cancel
+                        </button>
+                        <button type="submit" className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 transition-colors">
+                          Save
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </form>

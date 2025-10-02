@@ -17,7 +17,7 @@ import { CalendarEvent, EventFormData, EventColorMap, EventType } from '@/app/ty
 import EventModal from '@/app/components/EventsModal';
 // CORRECTED IMPORT: Toolbar is likely a default export
 import { CalendarToolbar } from '@/app/components/CalendarToolbar';
-import { ClockIcon, PlusIcon, AdjustmentsHorizontalIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { ClockIcon, PlusIcon, AdjustmentsHorizontalIcon, ArrowDownTrayIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 const locales = { 'en-US': enUS };
 const localizer = dateFnsLocalizer({ format, parse, startOfWeek, getDay, locales });
@@ -236,14 +236,11 @@ function CalendarPage() {
 
   // --- CRUD Handlers ---
   const handleSave = async (eventData: EventFormData) => {
-    console.log("DEBUG: Data received in handleSave from modal:", eventData);
     const eventToSave = {
       ...eventData,
       start: eventData.start.toISOString(),
       end: eventData.end.toISOString(),
     };
-
-    console.log("DEBUG: Sending this object to the API:", eventToSave);
     const promise = eventData._id
       ? axios.put(`/api/events/${eventData._id}`, eventToSave)
       : axios.post('/api/events', eventToSave);
@@ -338,8 +335,6 @@ function CalendarPage() {
 
   // --- UI and Styling ---
   const eventStyleGetter = (event: CalendarEvent) => {
-    // DEBUG: Log the event being styled to check its color property
-    console.log(`DEBUG: Styling event "${event.title}" with color: ${event.color}`);
     const style = {
       backgroundColor: event.color,
       borderRadius: '0px',
@@ -383,24 +378,59 @@ function CalendarPage() {
         </aside>
 
         {/* Main */}
-        <main className="flex-1 ">
-          <div className="px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between pt-4 sm:pt-6">
+        <main className="flex-1">
+          <div className="px-3 sm:px-6 lg:px-8">
+            {/* Mobile Header */}
+            <div className="md:hidden pt-3 pb-2">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-xl font-semibold text-gray-900 truncate">Calendar</h1>
+                  <p className="text-xs text-gray-600 mt-0.5">Plan, track, and review your events.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCreateNew}
+                  className="ml-2 inline-flex items-center justify-center w-10 h-10 rounded-full bg-indigo-600 text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  aria-label="Create new event"
+                >
+                  <PlusIcon className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Mobile Action Buttons */}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowFilters(prev => !prev)}
+                  className={`flex-1 inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors ${showFilters
+                    ? 'border-indigo-300 bg-indigo-50 text-indigo-700'
+                    : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                    } focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500`}
+                  aria-pressed={showFilters}
+                  aria-label="Toggle filters"
+                >
+                  <AdjustmentsHorizontalIcon className="h-4 w-4" />
+                  <span className="hidden xs:inline">Filters</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleExportToExcel}
+                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  aria-label="Export calendar to Excel"
+                >
+                  <ArrowDownTrayIcon className="h-4 w-4" />
+                  <span className="hidden xs:inline">Export</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Desktop Header */}
+            <div className="hidden md:flex items-center justify-between pt-4 sm:pt-6">
               <div>
                 <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900">Calendar</h1>
                 <p className="mt-1 text-sm text-gray-600">Plan, track, and review your events.</p>
               </div>
               <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowFilters(prev => !prev)}
-                  className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 md:hidden"
-                  aria-pressed={showFilters}
-                  aria-label="Toggle filters"
-                >
-                  <AdjustmentsHorizontalIcon className="h-5 w-5 text-gray-500" />
-                  Filters
-                </button>
                 <button
                   type="button"
                   onClick={handleExportToExcel}
@@ -410,34 +440,76 @@ function CalendarPage() {
                   <ArrowDownTrayIcon className="h-5 w-5 text-gray-500" />
                   Export Excel
                 </button>
+                <button
+                  type="button"
+                  onClick={handleCreateNew}
+                  className="inline-flex items-center gap-2 rounded-md border border-transparent bg-indigo-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  aria-label="Create new event"
+                >
+                  <PlusIcon className="h-5 w-5" />
+                  New event
+                </button>
               </div>
             </div>
 
             {/* Mobile filters */}
             {showFilters && (
-              <div className="mt-4 md:hidden rounded-lg border border-gray-200 bg-white p-4">
-                <h3 className="text-sm font-semibold text-gray-900">Filters</h3>
-                <div className="mt-3 grid grid-cols-2 gap-2">
+              <div className="mt-3 md:hidden rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-semibold text-gray-900">Event Types</h3>
+                  <button
+                    type="button"
+                    onClick={() => setShowFilters(false)}
+                    className="text-gray-400 hover:text-gray-600 p-1"
+                    aria-label="Close filters"
+                  >
+                    <XMarkIcon className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 gap-2">
                   {Object.entries(EventColorMap).map(([type, color]) => (
-                    <label key={type} htmlFor={`m-filter-${type}`} className="flex items-center gap-2 text-xs text-gray-700">
+                    <label
+                      key={type}
+                      htmlFor={`m-filter-${type}`}
+                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                    >
                       <input
                         id={`m-filter-${type}`}
                         type="checkbox"
                         checked={activeFilters.has(type as EventType)}
                         onChange={() => toggleFilter(type as EventType)}
-                        className="h-3.5 w-3.5 rounded border-gray-300"
+                        className="h-4 w-4 rounded border-gray-300 focus:ring-indigo-500"
                         style={{ accentColor: color }}
                         aria-checked={activeFilters.has(type as EventType)}
                       />
-                      <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
-                      {type}
+                      <span className="inline-block h-3 w-3 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+                      <span className="text-sm text-gray-700 flex-1">{type}</span>
+                      <span className="text-xs text-gray-500">
+                        {events.filter(e => e.type === type).length}
+                      </span>
                     </label>
                   ))}
+                </div>
+                <div className="mt-3 pt-3 border-t border-gray-100">
+                  <button
+                    type="button"
+                    onClick={() => setActiveFilters(new Set(Object.keys(EventColorMap) as EventType[]))}
+                    className="text-xs text-indigo-600 hover:text-indigo-700 font-medium"
+                  >
+                    Select All
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveFilters(new Set())}
+                    className="text-xs text-gray-500 hover:text-gray-700 font-medium ml-4"
+                  >
+                    Clear All
+                  </button>
                 </div>
               </div>
             )}
 
-            <div className="mt-5 rounded-lg border border-gray-200 bg-white shadow-sm">
+            <div className="mt-3 md:mt-5 rounded-lg border border-gray-200 bg-white shadow-sm">
               <DnDCalendar
                 defaultDate={new Date()}
                 defaultView={Views.MONTH}
@@ -453,7 +525,7 @@ function CalendarPage() {
                 date={date}
                 resizable
                 selectable
-                style={{ height: '78vh' }}
+                style={{ height: 'calc(100vh - 200px)', minHeight: '400px' }}
                 eventPropGetter={eventStyleGetter}
                 components={{
                   toolbar: CalendarToolbar,
