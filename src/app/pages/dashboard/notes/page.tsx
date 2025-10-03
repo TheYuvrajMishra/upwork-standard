@@ -70,7 +70,7 @@ function NotesPage() {
       toast.error("Title is required");
       return;
     }
-    const payload = { title: title.trim(), content: content.trim(), user: "self" };
+    const payload = { title: title.trim(), content: content.trim(), user: localStorage.getItem("token")};
     const op = editingNote ? "Updating" : "Creating";
     const promise = editingNote
       ? fetch(`/api/Notes/${editingNote._id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })

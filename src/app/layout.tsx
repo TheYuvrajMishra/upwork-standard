@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 // Define a base URL for your production site
-const siteUrl = "https://your-company-dashboard-url.com";
+const siteUrl = "https://upwork-standard.vercel.app";
 
 export const metadata: Metadata = {
   // Use a template for dynamic page titles
