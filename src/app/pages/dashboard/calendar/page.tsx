@@ -14,7 +14,7 @@ import { Toaster, toast } from 'react-hot-toast';
 
 import { CalendarEvent, EventFormData, EventColorMap, EventType } from '@/app/types'; // Corrected path
 // CORRECTED IMPORT: Fixed potential typo 'EventsModal' to 'EventModal'
-import EventModal from '@/app/components/EventsModal';
+import EventModal from '@/app/components/EventsModal'; 
 // CORRECTED IMPORT: Toolbar is likely a default export
 import { CalendarToolbar } from '@/app/components/CalendarToolbar';
 import { ClockIcon, PlusIcon, AdjustmentsHorizontalIcon, ArrowDownTrayIcon, XMarkIcon } from '@heroicons/react/24/outline';
@@ -36,7 +36,7 @@ const CustomAgendaEvent: React.FC<EventProps<CalendarEvent>> = ({ event }) => {
           <div className="flex items-center gap-2">
             <span
               className="inline-block h-2.5 w-2.5 rounded-full"
-              style={{ backgroundColor: eventColor }}
+        style={{ backgroundColor: eventColor }}
             />
             <p className="truncate text-sm font-semibold text-gray-900">{event.title}</p>
           </div>
@@ -62,8 +62,8 @@ const CustomAgendaEvent: React.FC<EventProps<CalendarEvent>> = ({ event }) => {
               style={{ backgroundColor: eventColor }}
             />
             {event.type}
-          </span>
-        </div>
+            </span>
+          </div>
       </div>
     </div>
   );
@@ -250,25 +250,25 @@ function CalendarPage() {
       success: `Event "${eventData.title}" saved!`,
       error: 'Could not save event.',
     });
-
+    
     promise.then(() => {
       closeModal();
       fetchEvents();
     }).catch(console.error);
   };
-
+  
   const handleDelete = async (eventId: string) => {
     if (window.confirm('Are you sure you want to delete this event?')) {
-      const promise = axios.delete(`/api/events/${eventId}`);
-      toast.promise(promise, {
-        loading: 'Deleting event...',
-        success: 'Event deleted successfully!',
-        error: 'Could not delete event.',
-      });
-      promise.then(() => {
-        closeModal();
-        fetchEvents();
-      }).catch(console.error);
+        const promise = axios.delete(`/api/events/${eventId}`);
+        toast.promise(promise, {
+          loading: 'Deleting event...',
+          success: 'Event deleted successfully!',
+          error: 'Could not delete event.',
+        });
+        promise.then(() => {
+          closeModal();
+          fetchEvents();
+        }).catch(console.error);
     }
   };
 
@@ -285,7 +285,7 @@ function CalendarPage() {
     });
     setIsModalOpen(true);
   }, []);
-
+  
   const handleSelectEvent = useCallback((event: CalendarEvent) => {
     setSelectedEvent({
       ...event,
@@ -299,7 +299,7 @@ function CalendarPage() {
 
   const onEventDrop: withDragAndDropProps<CalendarEvent>['onEventDrop'] = async ({ event, start, end }: any) => {
     const updatedEventData = { ...event, start, end };
-
+    
     try {
       // FIXED: Send the entire updated event object to persist all fields
       await axios.put(`/api/events/${event._id}`, updatedEventData);
@@ -308,7 +308,7 @@ function CalendarPage() {
     } catch (error) {
       toast.error(`Failed to move "${event.title}"`);
       // Revert local state on failure by re-fetching
-      fetchEvents();
+      fetchEvents(); 
       console.error(error);
     }
   };
@@ -327,7 +327,7 @@ function CalendarPage() {
       console.error(error);
     }
   };
-
+  
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedEvent(null);
@@ -336,12 +336,12 @@ function CalendarPage() {
   // --- UI and Styling ---
   const eventStyleGetter = (event: CalendarEvent) => {
     const style = {
-      backgroundColor: event.color,
-      borderRadius: '0px',
-      opacity: 0.8,
-      color: 'white',
-      border: '0px',
-      display: 'block'
+        backgroundColor: event.color,
+        borderRadius: '0px',
+        opacity: 0.8,
+        color: 'white',
+        border: '0px',
+        display: 'block'
     };
     return { style };
   };
@@ -356,23 +356,23 @@ function CalendarPage() {
             <h2 className="text-base font-semibold text-gray-900">Filters</h2>
             <p className="mt-1 text-xs text-gray-500">Toggle event types</p>
             <div className="mt-3 space-y-1.5">
-              {Object.entries(EventColorMap).map(([type, color]) => (
-                <div key={type} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id={`filter-${type}`}
-                    checked={activeFilters.has(type as EventType)}
-                    onChange={() => toggleFilter(type as EventType)}
+            {Object.entries(EventColorMap).map(([type, color]) => (
+              <div key={type} className="flex items-center">
+                <input
+                  type="checkbox"
+                  id={`filter-${type}`}
+                  checked={activeFilters.has(type as EventType)}
+                  onChange={() => toggleFilter(type as EventType)}
                     className="h-3.5 w-3.5 rounded border-gray-300"
-                    style={{ accentColor: color }}
+                  style={{ accentColor: color }}
                     aria-checked={activeFilters.has(type as EventType)}
-                  />
+                />
                   <label htmlFor={`filter-${type}`} className="ml-2 text-xs text-gray-700 flex items-center gap-1">
                     <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
                     {type}
                   </label>
-                </div>
-              ))}
+              </div>
+            ))}
             </div>
           </div>
         </aside>
@@ -510,32 +510,32 @@ function CalendarPage() {
             )}
 
             <div className="mt-3 md:mt-5 rounded-lg border border-gray-200 bg-white shadow-sm">
-              <DnDCalendar
-                defaultDate={new Date()}
-                defaultView={Views.MONTH}
-                events={filteredEvents}
-                localizer={localizer}
-                onEventDrop={onEventDrop}
-                onEventResize={onEventResize}
-                onSelectEvent={handleSelectEvent}
-                onSelectSlot={handleSelectSlot}
-                onView={setView}
-                view={view}
-                onNavigate={setDate}
-                date={date}
-                resizable
-                selectable
+                <DnDCalendar
+                    defaultDate={new Date()}
+                    defaultView={Views.MONTH}
+                    events={filteredEvents}
+                    localizer={localizer}
+                    onEventDrop={onEventDrop}
+                    onEventResize={onEventResize}
+                    onSelectEvent={handleSelectEvent}
+                    onSelectSlot={handleSelectSlot}
+                    onView={setView}
+                    view={view}
+                    onNavigate={setDate}
+                    date={date}
+                    resizable
+                    selectable
                 style={{ height: 'calc(100vh - 200px)', minHeight: '400px' }}
-                eventPropGetter={eventStyleGetter}
-                components={{
-                  toolbar: CalendarToolbar,
-                  agenda: {
-                    event: CustomAgendaEvent,
-                  },
-                }}
-              />
+                    eventPropGetter={eventStyleGetter}
+                    components={{
+                        toolbar: CalendarToolbar,
+                        agenda: {
+                          event: CustomAgendaEvent,
+                        },
+                    }}
+                />
             </div>
-          </div>
+            </div>
         </main>
       </div>
 

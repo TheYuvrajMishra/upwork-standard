@@ -3,10 +3,35 @@ import React from "react";
 import { Toaster, toast } from "react-hot-toast";
 import { PencilSquareIcon, TrashIcon, PlusIcon, MagnifyingGlassIcon, EyeIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
+// Utility function to decode JWT and extract username
+const decodeJWT = (token: string | null): string => {
+  if (!token) return 'Unknown';
+
+  try {
+    // JWT has 3 parts separated by dots: header.payload.signature
+    const parts = token.split('.');
+    if (parts.length !== 3) return 'Invalid Token';
+
+    // Decode the payload (second part)
+    const payload = parts[1];
+    // Add padding if needed for base64 decoding
+    const paddedPayload = payload + '='.repeat((4 - payload.length % 4) % 4);
+    const decodedPayload = atob(paddedPayload);
+    const parsedPayload = JSON.parse(decodedPayload);
+
+    // Extract username from the payload
+    return parsedPayload.username || parsedPayload.name || parsedPayload.email || 'Unknown User';
+  } catch (error) {
+    console.error('Error decoding JWT:', error);
+    return 'Invalid Token';
+  }
+};
+
 interface NoteItem {
   _id: string;
   title: string;
   content: string;
+  user: string;
 }
 
 function NotesPage() {
@@ -23,16 +48,40 @@ function NotesPage() {
   const filteredNotes = React.useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return notes;
-    return notes.filter(n => n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q));
+    return notes.filter(n =>
+      n.title.toLowerCase().includes(q) ||
+      n.content.toLowerCase().includes(q) ||
+      decodeJWT(n.user).toLowerCase().includes(q)
+    );
   }, [notes, query]);
 
   const fetchNotes = async () => {
     setLoading(true);
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast.error("Please log in to view notes");
+        setLoading(false);
+        return;
+      }
+
       const res = await fetch("/api/Notes", {
         method: "GET",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
       });
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          toast.error("Please log in to view notes");
+        } else {
+          toast.error("Failed to load notes");
+        }
+        return;
+      }
+
       const data = await res.json();
       setNotes(data.notes || []);
     } catch (_) {
@@ -70,17 +119,47 @@ function NotesPage() {
       toast.error("Title is required");
       return;
     }
-    const payload = { title: title.trim(), content: content.trim(), user: localStorage.getItem("token")};
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Please log in to save notes");
+      return;
+    }
+
+    const payload = { title: title.trim(), content: content.trim() };
     const op = editingNote ? "Updating" : "Creating";
     const promise = editingNote
-      ? fetch(`/api/Notes/${editingNote._id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
-      : fetch(`/api/Notes`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      ? fetch(`/api/Notes/${editingNote._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      })
+      : fetch(`/api/Notes`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
 
     toast.promise(promise, { loading: `${op} note...`, success: `Note ${editingNote ? "updated" : "created"}!`, error: `Failed to ${editingNote ? "update" : "create"} note` });
 
     try {
       const res = await promise;
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        if (res.status === 401) {
+          toast.error("Please log in to save notes");
+        } else if (res.status === 403) {
+          toast.error("You can only edit your own notes");
+        } else {
+          throw new Error();
+        }
+        return;
+      }
       setIsModalOpen(false);
       setTitle("");
       setContent("");
@@ -90,11 +169,32 @@ function NotesPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this note?")) return;
-    const promise = fetch(`/api/Notes/${id}`, { method: "DELETE" });
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Please log in to delete notes");
+      return;
+    }
+
+    const promise = fetch(`/api/Notes/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
     toast.promise(promise, { loading: "Deleting note...", success: "Note deleted", error: "Failed to delete note" });
     try {
       const res = await promise;
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        if (res.status === 401) {
+          toast.error("Please log in to delete notes");
+        } else if (res.status === 403) {
+          toast.error("You can only delete your own notes");
+        } else {
+          throw new Error();
+        }
+        return;
+      }
       setNotes(prev => prev.filter(n => n._id !== id));
     } catch (_) { }
   };
@@ -146,6 +246,7 @@ function NotesPage() {
                   <tr>
                     <th scope="col" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Title</th>
                     <th scope="col" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Content</th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Author</th>
                     <th scope="col" className="px-4 py-3" aria-hidden />
                   </tr>
                 </thead>
@@ -157,6 +258,11 @@ function NotesPage() {
                       </td>
                       <td className="px-4 py-3 align-top text-sm text-gray-700">
                         <p className="line-clamp-2 whitespace-pre-wrap">{note.content}</p>
+                      </td>
+                      <td className="px-4 py-3 align-top text-sm text-gray-600">
+                        <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+                          {decodeJWT(note.user)}
+                        </span>
                       </td>
                       <td className="px-4 py-3 w-36 text-right">
                         <div className="inline-flex gap-2">
