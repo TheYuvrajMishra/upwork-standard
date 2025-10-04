@@ -7,7 +7,7 @@ export async function GET() {
   try {
     await dbConnect();
     // Use the correct model name 'Task' to find the documents
-    const tasks = await Task.find({}).populate('assignedTo', 'name email'); // .populate() is added to fetch user details
+    const tasks = await Task.find({}).populate("assignedTo", "name email"); // .populate() is added to fetch user details
 
     return NextResponse.json({ success: true, data: tasks }, { status: 200 });
   } catch (err) {
@@ -18,4 +18,3 @@ export async function GET() {
     );
   }
 }
-
